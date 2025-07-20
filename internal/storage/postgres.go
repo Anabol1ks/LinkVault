@@ -1,4 +1,4 @@
-package db
+package storage
 
 import (
 	"fmt"
@@ -9,17 +9,16 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
-func ConnectDB(cfg *config.DBConfig, log *zap.Logger) {
+func ConnectDB(cfg *config.DBConfig, log *zap.Logger) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SSL)
 
-	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{PrepareStmt: false})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{PrepareStmt: false})
 	if err != nil {
 		log.Fatal("Не удалось подключиться к базе данных", zap.Error(err))
+		return nil, err
 	}
 
 	log.Info("Подключение к базе данных успешно установлено")
+	return db, nil
 }
