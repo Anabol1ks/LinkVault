@@ -1,0 +1,30 @@
+package repository
+
+import (
+	"linkvault/internal/models"
+	"time"
+
+	"gorm.io/gorm"
+)
+
+type ShortLinkRepository struct {
+	db *gorm.DB
+}
+
+func NewShortLinkRepository(db *gorm.DB) *ShortLinkRepository {
+	return &ShortLinkRepository{
+		db: db,
+	}
+}
+
+func (r *ShortLinkRepository) Create(shortLink *models.ShortLink) error {
+	return r.db.Create(shortLink).Error
+}
+
+func (r *ShortLinkRepository) GetOriginalURL(shortCode string) (string, error) {
+	var shortLink models.ShortLink
+	if err := r.db.Where("short_code = ? AND is_active = ? AND (expire_at IS NULL OR expire_at > ?)", shortCode, true, time.Now()).First(&shortLink).Error; err != nil {
+		return "", err
+	}
+	return shortLink.OriginalURL, nil
+}

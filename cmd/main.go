@@ -41,8 +41,10 @@ func main() {
 	storage.Migrate(db, log)
 
 	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db), log, cfg))
+	linkHandler := handler.NewShortLinkHandler(service.NewShortLinkService(repository.NewShortLinkRepository(db), log), cfg)
 	handlers := &router.Handlers{
 		User: userHandler,
+		Link: linkHandler,
 	}
 
 	r := router.Router(db, log, handlers)

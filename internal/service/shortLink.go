@@ -1,0 +1,78 @@
+package service
+
+import (
+	"errors"
+	"linkvault/internal/models"
+	"linkvault/internal/repository"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/teris-io/shortid"
+	"go.uber.org/zap"
+)
+
+type ShortLinkService struct {
+	repo *repository.ShortLinkRepository
+	log  *zap.Logger
+}
+
+func NewShortLinkService(repo *repository.ShortLinkRepository, log *zap.Logger) *ShortLinkService {
+	return &ShortLinkService{
+		repo: repo,
+		log:  log,
+	}
+}
+
+var ErrGenerateShortCode = errors.New("error generating short code")
+var ErrCreateShortLink = errors.New("error creating short link")
+
+func (s *ShortLinkService) CreateShortLink(originalURL string, userID *uuid.UUID, expireAfter *time.Duration) (*models.ShortLink, error) {
+	var finalExpireAt *time.Time
+	if expireAfter != nil {
+		exp := time.Now().Add(*expireAfter)
+		finalExpireAt = &exp
+	} else if userID == nil {
+		exp := time.Now().Add(7 * 24 * time.Hour)
+		finalExpireAt = &exp
+	} else {
+		finalExpireAt = nil
+	}
+
+	shortCode, err := generateShortCode()
+	if err != nil {
+		s.log.Error("Failed to generate short code", zap.Error(err))
+		return nil, ErrGenerateShortCode
+	}
+
+	shortLink := &models.ShortLink{
+		OriginalURL: originalURL,
+		UserID:      userID,
+		ShortCode:   shortCode,
+		IsActive:    true,
+		ExpireAt:    finalExpireAt,
+	}
+
+	if err := s.repo.Create(shortLink); err != nil {
+		s.log.Error("Failed to create short link", zap.Error(err))
+		return nil, ErrCreateShortLink
+	}
+
+	return shortLink, nil
+}
+
+func generateShortCode() (string, error) {
+	id, err := shortid.Generate()
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
+func (s *ShortLinkService) GetOriginalURL(shortCode string) (string, error) {
+	url, err := s.repo.GetOriginalURL(shortCode)
+	if err != nil {
+		s.log.Warn("Short link not found or inactive/expired", zap.String("shortCode", shortCode), zap.Error(err))
+		return "", err
+	}
+	return url, nil
+}
