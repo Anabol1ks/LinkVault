@@ -12,11 +12,11 @@ import (
 )
 
 type ShortLinkService struct {
-	repo repository.ShortLinkRepository
+	repo *repository.ShortLinkRepository
 	log  *zap.Logger
 }
 
-func NewShortLinkService(repo repository.ShortLinkRepository, log *zap.Logger) *ShortLinkService {
+func NewShortLinkService(repo *repository.ShortLinkRepository, log *zap.Logger) *ShortLinkService {
 	return &ShortLinkService{
 		repo: repo,
 		log:  log,
@@ -26,17 +26,16 @@ func NewShortLinkService(repo repository.ShortLinkRepository, log *zap.Logger) *
 var ErrGenerateShortCode = errors.New("error generating short code")
 var ErrCreateShortLink = errors.New("error creating short link")
 
-func (s *ShortLinkService) CreateShortLink(originalURL string, userID *uuid.UUID, expireAt *time.Time) (*models.ShortLink, error) {
+func (s *ShortLinkService) CreateShortLink(originalURL string, userID *uuid.UUID, expireAfter *time.Duration) (*models.ShortLink, error) {
 	var finalExpireAt *time.Time
-	if userID == nil {
+	if expireAfter != nil {
+		exp := time.Now().Add(*expireAfter)
+		finalExpireAt = &exp
+	} else if userID == nil {
 		exp := time.Now().Add(7 * 24 * time.Hour)
 		finalExpireAt = &exp
 	} else {
-		if expireAt != nil && !expireAt.IsZero() {
-			finalExpireAt = expireAt
-		} else {
-			finalExpireAt = nil
-		}
+		finalExpireAt = nil
 	}
 
 	shortCode, err := generateShortCode()
@@ -55,7 +54,7 @@ func (s *ShortLinkService) CreateShortLink(originalURL string, userID *uuid.UUID
 
 	if err := s.repo.Create(shortLink); err != nil {
 		s.log.Error("Failed to create short link", zap.Error(err))
-		return nil, err
+		return nil, ErrCreateShortLink
 	}
 
 	return shortLink, nil
@@ -67,4 +66,13 @@ func generateShortCode() (string, error) {
 		return "", err
 	}
 	return id, nil
+}
+
+func (s *ShortLinkService) GetOriginalURL(shortCode string) (string, error) {
+	url, err := s.repo.GetOriginalURL(shortCode)
+	if err != nil {
+		s.log.Warn("Short link not found or inactive/expired", zap.String("shortCode", shortCode), zap.Error(err))
+		return "", err
+	}
+	return url, nil
 }

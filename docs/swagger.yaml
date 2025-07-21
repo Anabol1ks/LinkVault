@@ -1,4 +1,14 @@
 definitions:
+  handler.CreateShortLinkRequest:
+    properties:
+      expire_after:
+        description: например, "2h", "30m", "7d"
+        type: string
+      original_url:
+        type: string
+    required:
+    - original_url
+    type: object
   handler.LoginRequest:
     properties:
       email:
@@ -36,6 +46,15 @@ definitions:
       error:
         type: string
     type: object
+  response.SuccessShortLinkResponse:
+    properties:
+      expire_at:
+        type: string
+      original_url:
+        type: string
+      short_url:
+        type: string
+    type: object
   response.TokenResponse:
     properties:
       access_token:
@@ -57,6 +76,35 @@ info:
   title: TZ_OZON API
   version: "1.0"
 paths:
+  /{shortCode}:
+    get:
+      consumes:
+      - application/json
+      description: Перенаправление на оригинальный URL по shortCode
+      parameters:
+      - description: shortCode
+        in: path
+        name: shortCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Успешное получение оригинального URL
+          schema:
+            type: string
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Короткая ссылка не найдена или неактивна/истекла
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Перенаправление
+      tags:
+      - links
   /auth/login:
     post:
       consumes:
@@ -163,6 +211,36 @@ paths:
       summary: Регистрация пользователя
       tags:
       - users
+  /links:
+    post:
+      consumes:
+      - application/json
+      description: Create a short link
+      parameters:
+      - description: CreateShortLinkRequest
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateShortLinkRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное создание короткой ссылки
+          schema:
+            $ref: '#/definitions/response.SuccessShortLinkResponse'
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Ошибка создания короткой ссылки
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create a short link
+      tags:
+      - links
 securityDefinitions:
   BearerAuth:
     in: header

@@ -10,8 +10,9 @@ import (
 )
 
 type Config struct {
-	DB  DBConfig
-	JWT JWTConfig
+	DB     DBConfig
+	JWT    JWTConfig
+	Domain string
 }
 
 type JWTConfig struct {
@@ -46,6 +47,7 @@ func Load(log *zap.Logger) *Config {
 			Refresh:    getEnv("REFRESH_SECRET", log),
 			RefreshExp: parseDurationWithDays(getEnv("REFRESH_EXP", log)),
 		},
+		Domain: getEnv("DOMAIN", log),
 	}
 }
 

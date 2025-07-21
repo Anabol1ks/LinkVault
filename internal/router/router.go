@@ -12,6 +12,7 @@ import (
 
 type Handlers struct {
 	User *handler.UserHandler
+	Link *handler.ShortLinkHandler
 }
 
 func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers) *gin.Engine {
@@ -30,6 +31,12 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers) *gin.Engine {
 		auth.POST("/login", handlers.User.Login)
 		auth.POST("/refresh", handlers.User.Refresh)
 	}
+
+	links := r.Group("/links")
+	{
+		links.POST("", handlers.Link.CreateShortLink)
+	}
+	r.GET("/:shortCode", handlers.Link.GetOriginalURL)
 
 	return r
 }
