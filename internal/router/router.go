@@ -27,6 +27,8 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers) *gin.Engine {
 	auth := r.Group("/auth")
 	{
 		auth.POST("/register", handlers.User.Register)
+		auth.POST("/login", handlers.User.Login)
+		auth.POST("/refresh", handlers.User.Refresh)
 	}
 
 	return r

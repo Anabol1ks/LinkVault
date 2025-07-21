@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"linkvault/internal/config"
+	"linkvault/internal/jwt"
 	"net/http"
 	"strings"
 
@@ -16,7 +17,7 @@ func JWTAuth(cfg *config.JWTConfig) gin.HandlerFunc {
 			return
 		}
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-		claims, err := ParseAccessToken(tokenStr, cfg.Access)
+		claims, err := jwt.ParseAccessToken(tokenStr, cfg.Access)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			return

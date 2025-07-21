@@ -17,6 +17,9 @@ import (
 
 // @Title TZ_OZON API
 // @Version 1.0
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
 func main() {
 	_ = godotenv.Load()
 	isDev := os.Getenv("ENV") == "development"
@@ -37,7 +40,7 @@ func main() {
 
 	storage.Migrate(db, log)
 
-	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db), log))
+	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db), log, cfg))
 	handlers := &router.Handlers{
 		User: userHandler,
 	}
