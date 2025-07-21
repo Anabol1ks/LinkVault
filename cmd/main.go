@@ -1,9 +1,13 @@
 package main
 
 import (
+	_ "linkvault/docs"
 	"linkvault/internal/config"
+	"linkvault/internal/handler"
 	"linkvault/internal/logger"
+	"linkvault/internal/repository"
 	"linkvault/internal/router"
+	"linkvault/internal/service"
 	"linkvault/internal/storage"
 	"os"
 
@@ -11,6 +15,8 @@ import (
 	"go.uber.org/zap"
 )
 
+// @Title TZ_OZON API
+// @Version 1.0
 func main() {
 	_ = godotenv.Load()
 	isDev := os.Getenv("ENV") == "development"
@@ -31,7 +37,12 @@ func main() {
 
 	storage.Migrate(db, log)
 
-	r := router.Router(db, log)
+	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db), log))
+	handlers := &router.Handlers{
+		User: userHandler,
+	}
+
+	r := router.Router(db, log, handlers)
 	if err := r.Run(); err != nil {
 		log.Fatal("Не удалось запустить сервер", zap.Error(err))
 	}
