@@ -4,6 +4,7 @@ import (
 	"linkvault/internal/models"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -31,4 +32,12 @@ func (r *ShortLinkRepository) GetOriginalURL(shortCode string) (string, error) {
 
 func (r *ShortLinkRepository) GetByShortCode(shortLink *models.ShortLink, shortCode string) error {
 	return r.db.Where("short_code = ? AND is_active = ? AND (expire_at IS NULL OR expire_at > ?)", shortCode, true, time.Now()).First(shortLink).Error
+}
+
+func (r *ShortLinkRepository) GetByUserID(userID uuid.UUID) ([]*models.ShortLink, error) {
+	var shortLinks []*models.ShortLink
+	if err := r.db.Where("user_id = ? AND is_active = ? AND (expire_at IS NULL OR expire_at > ?)", userID, true, time.Now()).Find(&shortLinks).Error; err != nil {
+		return nil, err
+	}
+	return shortLinks, nil
 }

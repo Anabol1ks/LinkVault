@@ -46,6 +46,13 @@ definitions:
       error:
         type: string
     type: object
+  response.ShortLinkListResponse:
+    properties:
+      links:
+        items:
+          $ref: '#/definitions/response.SuccessShortLinkResponse'
+        type: array
+    type: object
   response.SuccessShortLinkResponse:
     properties:
       expire_at:
@@ -212,10 +219,35 @@ paths:
       tags:
       - users
   /links:
+    get:
+      consumes:
+      - application/json
+      description: Получить короткие ссылки пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное получение коротких ссылок
+          schema:
+            $ref: '#/definitions/response.ShortLinkListResponse'
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Ошибка получения коротких ссылок
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получить короткие ссылки пользователя
+      tags:
+      - links
+  /links/create:
     post:
       consumes:
       - application/json
-      description: Create a short link
+      description: Создание короткой ссылки
       parameters:
       - description: CreateShortLinkRequest
         in: body
@@ -238,7 +270,7 @@ paths:
           description: Ошибка создания короткой ссылки
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      summary: Create a short link
+      summary: Создание короткой ссылки
       tags:
       - links
 securityDefinitions:

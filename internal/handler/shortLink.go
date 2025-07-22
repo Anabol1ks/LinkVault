@@ -32,8 +32,8 @@ type CreateShortLinkRequest struct {
 }
 
 // CreateShortLink godoc
-// @Summary Create a short link
-// @Description Create a short link
+// @Summary Создание короткой ссылки
+// @Description Создание короткой ссылки
 // @Tags links
 // @Accept json
 // @Produce json
@@ -41,7 +41,7 @@ type CreateShortLinkRequest struct {
 // @Success 200 {object} response.SuccessShortLinkResponse "Успешное создание короткой ссылки"
 // @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
 // @Failure 500 {object} response.ErrorResponse "Ошибка создания короткой ссылки"
-// @Router /links [post]
+// @Router /links/create [post]
 func (h *ShortLinkHandler) CreateShortLink(c *gin.Context) {
 	var req CreateShortLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -115,4 +115,41 @@ func (h *ShortLinkHandler) GetOriginalURL(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, originalURL)
+}
+
+// GetLinksUser godoc
+// @Summary Получить короткие ссылки пользователя
+// @Description Получить короткие ссылки пользователя
+// @Security BearerAuth
+// @Tags links
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.ShortLinkListResponse "Успешное получение коротких ссылок"
+// @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
+// @Failure 500 {object} response.ErrorResponse "Ошибка получения коротких ссылок"
+// @Router /links [get]
+func (h *ShortLinkHandler) GetLinksUser(c *gin.Context) {
+	var userID uuid.UUID
+	if val, exists := c.Get("user_id"); exists {
+		if parsed, err := uuid.Parse(val.(string)); err == nil {
+			userID = parsed
+		}
+	}
+
+	shortLinks, err := h.service.GetLinksUser(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Ошибка получения коротких ссылок"})
+		return
+	}
+
+	var links []*response.SuccessShortLinkResponse
+	for _, link := range shortLinks {
+		links = append(links, &response.SuccessShortLinkResponse{
+			ShortURL:    fmt.Sprintf("%s/%s", h.cfg.Domain, link.ShortCode),
+			OriginalURL: link.OriginalURL,
+			ExpireAt:    link.ExpireAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, response.ShortLinkListResponse{Links: links})
 }

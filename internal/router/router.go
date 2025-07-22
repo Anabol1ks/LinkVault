@@ -34,8 +34,9 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config
 		auth.POST("/refresh", handlers.User.Refresh)
 	}
 
-	links := r.Group("/links")
-	links.POST("", middleware.OptionalJWTAuth(&cfg.JWT), handlers.Link.CreateShortLink)
+	links := r.Group("/links", middleware.JWTAuth(&cfg.JWT))
+	r.POST("/links/create", middleware.OptionalJWTAuth(&cfg.JWT), handlers.Link.CreateShortLink)
+	links.GET("", handlers.Link.GetLinksUser)
 
 	r.GET("/:shortCode", handlers.Link.GetOriginalURL)
 

@@ -22,3 +22,7 @@ type SuccessShortLinkResponse struct {
 	OriginalURL string     `json:"original_url"`
 	ExpireAt    *time.Time `json:"expire_at,omitempty"`
 }
+
+type ShortLinkListResponse struct {
+	Links []*SuccessShortLinkResponse `json:"links"`
+}

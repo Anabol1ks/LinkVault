@@ -86,3 +86,12 @@ func (s *ShortLinkService) GetShortLinkByCode(shortCode string) (*models.ShortLi
 	}
 	return &shortLink, nil
 }
+
+func (s *ShortLinkService) GetLinksUser(userID uuid.UUID) ([]*models.ShortLink, error) {
+	shortLinks, err := s.repo.GetByUserID(userID)
+	if err != nil {
+		s.log.Warn("Failed to get short links for user", zap.String("userID", userID.String()), zap.Error(err))
+		return nil, err
+	}
+	return shortLinks, nil
+}

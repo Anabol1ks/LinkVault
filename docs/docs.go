@@ -178,8 +178,13 @@ const docTemplate = `{
             }
         },
         "/links": {
-            "post": {
-                "description": "Create a short link",
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить короткие ссылки пользователя",
                 "consumes": [
                     "application/json"
                 ],
@@ -189,7 +194,42 @@ const docTemplate = `{
                 "tags": [
                     "links"
                 ],
-                "summary": "Create a short link",
+                "summary": "Получить короткие ссылки пользователя",
+                "responses": {
+                    "200": {
+                        "description": "Успешное получение коротких ссылок",
+                        "schema": {
+                            "$ref": "#/definitions/response.ShortLinkListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка получения коротких ссылок",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/links/create": {
+            "post": {
+                "description": "Создание короткой ссылки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Создание короткой ссылки",
                 "parameters": [
                     {
                         "description": "CreateShortLinkRequest",
@@ -336,6 +376,17 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.ShortLinkListResponse": {
+            "type": "object",
+            "properties": {
+                "links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SuccessShortLinkResponse"
+                    }
                 }
             }
         },
