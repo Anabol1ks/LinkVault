@@ -15,6 +15,7 @@ type Click struct {
 	IP        string    `gorm:"type:text;not null"`
 	UserAgent string    `gorm:"type:text;not null"`
 	Country   string    `gorm:"type:text;not null"`
+	Region    string    `gorm:"type:text;not null"`
 	ClickedAt time.Time `gorm:"autoCreateTime"`
 }
 

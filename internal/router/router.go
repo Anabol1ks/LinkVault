@@ -1,7 +1,9 @@
 package router
 
 import (
+	"linkvault/internal/config"
 	"linkvault/internal/handler"
+	"linkvault/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -15,7 +17,7 @@ type Handlers struct {
 	Link *handler.ShortLinkHandler
 }
 
-func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers) *gin.Engine {
+func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config) *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -33,9 +35,8 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers) *gin.Engine {
 	}
 
 	links := r.Group("/links")
-	{
-		links.POST("", handlers.Link.CreateShortLink)
-	}
+	links.POST("", middleware.OptionalJWTAuth(&cfg.JWT), handlers.Link.CreateShortLink)
+
 	r.GET("/:shortCode", handlers.Link.GetOriginalURL)
 
 	return r

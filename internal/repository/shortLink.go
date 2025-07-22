@@ -28,3 +28,7 @@ func (r *ShortLinkRepository) GetOriginalURL(shortCode string) (string, error) {
 	}
 	return shortLink.OriginalURL, nil
 }
+
+func (r *ShortLinkRepository) GetByShortCode(shortLink *models.ShortLink, shortCode string) error {
+	return r.db.Where("short_code = ? AND is_active = ? AND (expire_at IS NULL OR expire_at > ?)", shortCode, true, time.Now()).First(shortLink).Error
+}

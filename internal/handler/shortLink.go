@@ -13,14 +13,16 @@ import (
 )
 
 type ShortLinkHandler struct {
-	service *service.ShortLinkService
-	cfg     *config.Config
+	service      *service.ShortLinkService
+	clickService *service.ClickService
+	cfg          *config.Config
 }
 
-func NewShortLinkHandler(service *service.ShortLinkService, cfg *config.Config) *ShortLinkHandler {
+func NewShortLinkHandler(service *service.ShortLinkService, clickService *service.ClickService, cfg *config.Config) *ShortLinkHandler {
 	return &ShortLinkHandler{
-		service: service,
-		cfg:     cfg,
+		service:      service,
+		clickService: clickService,
+		cfg:          cfg,
 	}
 }
 
@@ -47,11 +49,9 @@ func (h *ShortLinkHandler) CreateShortLink(c *gin.Context) {
 		return
 	}
 
-	userIDStr, _ := c.GetQuery("user_id")
 	var userID *uuid.UUID
-	if userIDStr != "" {
-		parsed, err := uuid.Parse(userIDStr)
-		if err == nil {
+	if val, exists := c.Get("user_id"); exists {
+		if parsed, err := uuid.Parse(val.(string)); err == nil {
 			userID = &parsed
 		}
 	}
@@ -99,10 +99,19 @@ func (h *ShortLinkHandler) GetOriginalURL(c *gin.Context) {
 		return
 	}
 
-	originalURL, err := h.service.GetOriginalURL(shortCode)
+	shortLink, err := h.service.GetShortLinkByCode(shortCode)
 	if err != nil {
 		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Short link not found or inactive/expired"})
 		return
+	}
+	originalURL := shortLink.OriginalURL
+
+	if shortLink.UserID != nil {
+		ip := c.ClientIP()
+		userAgent := c.Request.UserAgent()
+		go func() {
+			_ = h.clickService.CreateClick(shortLink.ID, ip, userAgent)
+		}()
 	}
 
 	c.Redirect(http.StatusFound, originalURL)

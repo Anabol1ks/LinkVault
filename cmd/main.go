@@ -40,14 +40,27 @@ func main() {
 
 	storage.Migrate(db, log)
 
-	userHandler := handler.NewUserHandler(service.NewUserService(repository.NewUserRepository(db), log, cfg))
-	linkHandler := handler.NewShortLinkHandler(service.NewShortLinkService(repository.NewShortLinkRepository(db), log), cfg)
+	// 1. Репозитории
+	userRepo := repository.NewUserRepository(db)
+	shortLinkRepo := repository.NewShortLinkRepository(db)
+	clickRepo := repository.NewClickRepository(db)
+
+	// 2. Сервисы
+	userService := service.NewUserService(userRepo, log, cfg)
+	shortLinkService := service.NewShortLinkService(shortLinkRepo, log)
+	clickService := service.NewClickService(clickRepo, log)
+
+	// 3. Хендлеры
+	userHandler := handler.NewUserHandler(userService)
+	linkHandler := handler.NewShortLinkHandler(shortLinkService, clickService, cfg)
+
+	// 4. Handlers для роутера
 	handlers := &router.Handlers{
 		User: userHandler,
 		Link: linkHandler,
 	}
 
-	r := router.Router(db, log, handlers)
+	r := router.Router(db, log, handlers, cfg)
 	if err := r.Run(); err != nil {
 		log.Fatal("Не удалось запустить сервер", zap.Error(err))
 	}
