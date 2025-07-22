@@ -49,11 +49,9 @@ func (h *ShortLinkHandler) CreateShortLink(c *gin.Context) {
 		return
 	}
 
-	userIDStr, _ := c.GetQuery("user_id")
 	var userID *uuid.UUID
-	if userIDStr != "" {
-		parsed, err := uuid.Parse(userIDStr)
-		if err == nil {
+	if val, exists := c.Get("user_id"); exists {
+		if parsed, err := uuid.Parse(val.(string)); err == nil {
 			userID = &parsed
 		}
 	}

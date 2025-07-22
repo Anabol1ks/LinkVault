@@ -60,7 +60,7 @@ func main() {
 		Link: linkHandler,
 	}
 
-	r := router.Router(db, log, handlers)
+	r := router.Router(db, log, handlers, cfg)
 	if err := r.Run(); err != nil {
 		log.Fatal("Не удалось запустить сервер", zap.Error(err))
 	}
