@@ -263,6 +263,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/links/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Деактивация (soft delete) короткой ссылки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Деактивация (soft delete) короткой ссылки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID короткой ссылки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ссылка деактивирована",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Ссылка не найдена или не принадлежит пользователю",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка деактивации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/{shortCode}": {
             "get": {
                 "description": "Перенаправление на оригинальный URL по shortCode",
@@ -394,6 +449,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expire_at": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "original_url": {

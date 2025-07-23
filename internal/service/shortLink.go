@@ -95,3 +95,12 @@ func (s *ShortLinkService) GetLinksUser(userID uuid.UUID) ([]*models.ShortLink, 
 	}
 	return shortLinks, nil
 }
+
+func (s *ShortLinkService) DeactivateShortLink(id, userID uuid.UUID) error {
+	err := s.repo.DeactivateByID(id, userID)
+	if err != nil {
+		s.log.Warn("Failed to deactivate short link", zap.String("id", id.String()), zap.Error(err))
+		return err
+	}
+	return nil
+}

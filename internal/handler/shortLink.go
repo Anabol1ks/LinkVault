@@ -75,6 +75,7 @@ func (h *ShortLinkHandler) CreateShortLink(c *gin.Context) {
 	shortURL := fmt.Sprintf("%s/%s", h.cfg.Domain, shortLink.ShortCode)
 
 	c.JSON(http.StatusOK, response.SuccessShortLinkResponse{
+		ID:          shortLink.ID,
 		ShortURL:    shortURL,
 		OriginalURL: shortLink.OriginalURL,
 		ExpireAt:    shortLink.ExpireAt,
@@ -145,6 +146,7 @@ func (h *ShortLinkHandler) GetLinksUser(c *gin.Context) {
 	var links []*response.SuccessShortLinkResponse
 	for _, link := range shortLinks {
 		links = append(links, &response.SuccessShortLinkResponse{
+			ID:          link.ID,
 			ShortURL:    fmt.Sprintf("%s/%s", h.cfg.Domain, link.ShortCode),
 			OriginalURL: link.OriginalURL,
 			ExpireAt:    link.ExpireAt,
@@ -152,4 +154,44 @@ func (h *ShortLinkHandler) GetLinksUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.ShortLinkListResponse{Links: links})
+}
+
+// DeleteShortLink godoc
+// @Summary Деактивация (soft delete) короткой ссылки
+// @Description Деактивация (soft delete) короткой ссылки
+// @Security BearerAuth
+// @Tags links
+// @Accept json
+// @Produce json
+// @Param id path string true "ID короткой ссылки"
+// @Success 200 {object} response.ErrorResponse "Ссылка деактивирована"
+// @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
+// @Failure 404 {object} response.ErrorResponse "Ссылка не найдена или не принадлежит пользователю"
+// @Failure 500 {object} response.ErrorResponse "Ошибка деактивации"
+// @Router /links/{id} [delete]
+func (h *ShortLinkHandler) DeleteShortLink(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Некорректный id"})
+		return
+	}
+	var userID uuid.UUID
+	if val, exists := c.Get("user_id"); exists {
+		if parsed, err := uuid.Parse(val.(string)); err == nil {
+			userID = parsed
+		} else {
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Unauthorized"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Unauthorized"})
+		return
+	}
+	err = h.service.DeactivateShortLink(id, userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Ссылка не найдена или не принадлежит пользователю"})
+		return
+	}
+	c.JSON(http.StatusOK, response.ErrorResponse{Error: "Ссылка деактивирована"})
 }

@@ -41,3 +41,9 @@ func (r *ShortLinkRepository) GetByUserID(userID uuid.UUID) ([]*models.ShortLink
 	}
 	return shortLinks, nil
 }
+
+func (r *ShortLinkRepository) DeactivateByID(id, userID uuid.UUID) error {
+	return r.db.Model(&models.ShortLink{}).
+		Where("id = ? AND user_id = ? AND is_active = ?", id, userID, true).
+		Update("is_active", false).Error
+}

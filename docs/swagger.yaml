@@ -57,6 +57,8 @@ definitions:
     properties:
       expire_at:
         type: string
+      id:
+        type: string
       original_url:
         type: string
       short_url:
@@ -241,6 +243,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Получить короткие ссылки пользователя
+      tags:
+      - links
+  /links/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Деактивация (soft delete) короткой ссылки
+      parameters:
+      - description: ID короткой ссылки
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Ссылка деактивирована
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Ссылка не найдена или не принадлежит пользователю
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Ошибка деактивации
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Деактивация (soft delete) короткой ссылки
       tags:
       - links
   /links/create:

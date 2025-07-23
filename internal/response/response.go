@@ -1,6 +1,10 @@
 package response
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type ErrorResponse struct {
 	Error string `json:"error"`
@@ -18,6 +22,7 @@ type TokenResponse struct {
 }
 
 type SuccessShortLinkResponse struct {
+	ID          uuid.UUID  `json:"id"`
 	ShortURL    string     `json:"short_url"`
 	OriginalURL string     `json:"original_url"`
 	ExpireAt    *time.Time `json:"expire_at,omitempty"`
