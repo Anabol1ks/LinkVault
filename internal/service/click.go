@@ -45,3 +45,37 @@ func (s *ClickService) CreateClick(shortLinkID uuid.UUID, ip, userAgent string) 
 
 	return s.repo.Create(click)
 }
+
+func (s *ClickService) GetStats(shortLinkID string) (map[string]interface{}, error) {
+	stats := make(map[string]interface{})
+
+	// Общее количество переходов
+	total, err := s.repo.GetCount(shortLinkID)
+	if err != nil {
+		return nil, err
+	}
+	stats["total"] = total
+
+	// Уникальные IP
+	uniqueIP, err := s.repo.GetUniqueIPCount(shortLinkID)
+	if err != nil {
+		return nil, err
+	}
+	stats["unique_ip"] = uniqueIP
+
+	// География по странам
+	countryStats, err := s.repo.GetCountryStats(shortLinkID)
+	if err != nil {
+		return nil, err
+	}
+	stats["countries"] = countryStats
+
+	// График по дням
+	dailyStats, err := s.repo.GetDailyStats(shortLinkID)
+	if err != nil {
+		return nil, err
+	}
+	stats["daily"] = dailyStats
+
+	return stats, nil
+}

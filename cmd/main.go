@@ -53,11 +53,13 @@ func main() {
 	// 3. Хендлеры
 	userHandler := handler.NewUserHandler(userService)
 	linkHandler := handler.NewShortLinkHandler(shortLinkService, clickService, cfg)
+	clickHandler := handler.NewClickHandler(clickService, shortLinkService)
 
 	// 4. Handlers для роутера
 	handlers := &router.Handlers{
-		User: userHandler,
-		Link: linkHandler,
+		User:  userHandler,
+		Link:  linkHandler,
+		Click: clickHandler,
 	}
 
 	r := router.Router(db, log, handlers, cfg)

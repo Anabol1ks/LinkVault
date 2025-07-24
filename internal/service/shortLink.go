@@ -104,3 +104,7 @@ func (s *ShortLinkService) DeactivateShortLink(id, userID uuid.UUID) error {
 	}
 	return nil
 }
+
+func (s *ShortLinkService) GetByID(id string) (*models.ShortLink, error) {
+	return s.repo.GetByID(id)
+}

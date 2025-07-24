@@ -46,6 +46,12 @@ definitions:
       error:
         type: string
     type: object
+  response.LinkStatsResponse:
+    properties:
+      stats:
+        additionalProperties: true
+        type: object
+    type: object
   response.ShortLinkListResponse:
     properties:
       links:
@@ -278,6 +284,42 @@ paths:
       security:
       - BearerAuth: []
       summary: Деактивация (soft delete) короткой ссылки
+      tags:
+      - links
+  /links/{id}/stats:
+    get:
+      consumes:
+      - application/json
+      description: 'Получить статистику: количество переходов, уникальные IP, география,
+        график по дням'
+      parameters:
+      - description: ID короткой ссылки
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика по ссылке
+          schema:
+            $ref: '#/definitions/response.LinkStatsResponse'
+        "400":
+          description: Ошибка валидации
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Ссылка не найдена
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Статистика по короткой ссылке
       tags:
       - links
   /links/create:

@@ -13,8 +13,9 @@ import (
 )
 
 type Handlers struct {
-	User *handler.UserHandler
-	Link *handler.ShortLinkHandler
+	User  *handler.UserHandler
+	Link  *handler.ShortLinkHandler
+	Click *handler.ClickHandler
 }
 
 func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config) *gin.Engine {
@@ -39,6 +40,7 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config
 		r.POST("/links/create", middleware.OptionalJWTAuth(&cfg.JWT), handlers.Link.CreateShortLink)
 		links.GET("", handlers.Link.GetLinksUser)
 		links.DELETE("/:id", handlers.Link.DeleteShortLink)
+		links.GET("/:id/stats", handlers.Click.GetLinkStats)
 	}
 	r.GET("/:shortCode", handlers.Link.GetOriginalURL)
 

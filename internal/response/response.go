@@ -28,6 +28,10 @@ type SuccessShortLinkResponse struct {
 	ExpireAt    *time.Time `json:"expire_at,omitempty"`
 }
 
+type LinkStatsResponse struct {
+	Stats map[string]interface{} `json:"stats"`
+}
+
 type ShortLinkListResponse struct {
 	Links []*SuccessShortLinkResponse `json:"links"`
 }

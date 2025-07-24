@@ -309,6 +309,61 @@
                 }
             }
         },
+        "/links/{id}/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить статистику: количество переходов, уникальные IP, география, график по дням",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Статистика по короткой ссылке",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID короткой ссылки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика по ссылке",
+                        "schema": {
+                            "$ref": "#/definitions/response.LinkStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Ссылка не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/{shortCode}": {
             "get": {
                 "description": "Перенаправление на оригинальный URL по shortCode",
@@ -422,6 +477,15 @@
             "properties": {
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.LinkStatsResponse": {
+            "type": "object",
+            "properties": {
+                "stats": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },
