@@ -66,3 +66,13 @@ type LinkStatsResponse struct {
 type ShortLinkListResponse struct {
 	Links []*SuccessShortLinkResponse `json:"links"`
 }
+
+// DTO для ответа по кликам
+type ClickResponse struct {
+	ID        string    `json:"id"`
+	IP        string    `json:"ip"`
+	UserAgent string    `json:"user_agent"`
+	ClickedAt time.Time `json:"clicked_at"`
+	Country   string    `json:"country"`
+	Region    string    `json:"region"`
+}

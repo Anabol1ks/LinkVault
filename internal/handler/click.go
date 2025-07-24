@@ -76,7 +76,7 @@ func (h *ClickHandler) GetLinkStats(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "ID короткой ссылки"
-// @Success 200 {array} models.Click "Список кликов"
+// @Success 200 {array} response.ClickResponse "Список кликов"
 // @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
 // @Failure 404 {object} response.ErrorResponse "Ссылка не найдена"
 // @Failure 403 {object} response.ErrorResponse "Нет доступа"

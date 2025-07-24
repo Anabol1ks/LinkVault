@@ -351,7 +351,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Click"
+                                "$ref": "#/definitions/response.ClickResponse"
                             }
                         }
                     },
@@ -539,10 +539,10 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Click": {
+        "response.ClickResponse": {
             "type": "object",
             "properties": {
-                "clickedAt": {
+                "clicked_at": {
                     "type": "string"
                 },
                 "country": {
@@ -557,75 +557,8 @@ const docTemplate = `{
                 "region": {
                     "type": "string"
                 },
-                "shortLink": {
-                    "$ref": "#/definitions/models.ShortLink"
-                },
-                "shortLinkID": {
+                "user_agent": {
                     "type": "string"
-                },
-                "userAgent": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ShortLink": {
-            "type": "object",
-            "properties": {
-                "clicks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Click"
-                    }
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "expireAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isActive": {
-                    "type": "boolean"
-                },
-                "originalURL": {
-                    "type": "string"
-                },
-                "shortCode": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.User"
-                },
-                "userID": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.User": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "passwordHash": {
-                    "type": "string"
-                },
-                "shortLinks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ShortLink"
-                    }
                 }
             }
         },
@@ -645,15 +578,13 @@ const docTemplate = `{
                 "countries_stats": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "integer"
                     }
                 },
                 "daily_stats": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer",
-                        "format": "int64"
+                        "type": "integer"
                     }
                 },
                 "total": {

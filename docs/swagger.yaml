@@ -41,9 +41,9 @@ definitions:
     - name
     - password
     type: object
-  models.Click:
+  response.ClickResponse:
     properties:
-      clickedAt:
+      clicked_at:
         type: string
       country:
         type: string
@@ -53,52 +53,8 @@ definitions:
         type: string
       region:
         type: string
-      shortLink:
-        $ref: '#/definitions/models.ShortLink'
-      shortLinkID:
+      user_agent:
         type: string
-      userAgent:
-        type: string
-    type: object
-  models.ShortLink:
-    properties:
-      clicks:
-        items:
-          $ref: '#/definitions/models.Click'
-        type: array
-      createdAt:
-        type: string
-      expireAt:
-        type: string
-      id:
-        type: string
-      isActive:
-        type: boolean
-      originalURL:
-        type: string
-      shortCode:
-        type: string
-      user:
-        $ref: '#/definitions/models.User'
-      userID:
-        type: string
-    type: object
-  models.User:
-    properties:
-      createdAt:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      passwordHash:
-        type: string
-      shortLinks:
-        items:
-          $ref: '#/definitions/models.ShortLink'
-        type: array
     type: object
   response.DetailedLinkStats:
     description: Подробная статистика по короткой ссылке
@@ -111,12 +67,10 @@ definitions:
         type: integer
       countries_stats:
         additionalProperties:
-          format: int64
           type: integer
         type: object
       daily_stats:
         additionalProperties:
-          format: int64
           type: integer
         type: object
       total:
@@ -391,7 +345,7 @@ paths:
           description: Список кликов
           schema:
             items:
-              $ref: '#/definitions/models.Click'
+              $ref: '#/definitions/response.ClickResponse'
             type: array
         "400":
           description: Ошибка валидации

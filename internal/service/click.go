@@ -95,11 +95,22 @@ func (s *ClickService) GetStats(shortLinkID string) (response.DetailedLinkStats,
 	return stats, nil
 }
 
-func (s *ClickService) GetClicks(shortLinkID string) ([]models.Click, error) {
+func (s *ClickService) GetClicks(shortLinkID string) ([]response.ClickResponse, error) {
 	clicks, err := s.repo.GetByShortLinkID(shortLinkID)
 	if err != nil {
 		return nil, err
 	}
 	sort.Slice(clicks, func(i, j int) bool { return clicks[i].ClickedAt.After(clicks[j].ClickedAt) })
-	return clicks, nil
+	var resp []response.ClickResponse
+	for _, c := range clicks {
+		resp = append(resp, response.ClickResponse{
+			ID:        c.ID.String(),
+			IP:        c.IP,
+			UserAgent: c.UserAgent,
+			ClickedAt: c.ClickedAt,
+			Country:   c.Country,
+			Region:    c.Region,
+		})
+	}
+	return resp, nil
 }
