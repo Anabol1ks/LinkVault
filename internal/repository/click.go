@@ -91,3 +91,23 @@ func (c *ClickRepository) GetDailyStats(shortLinkID string) (map[string]int64, e
 	}
 	return stats, nil
 }
+
+// Получить список уникальных IP
+func (c *ClickRepository) GetUniqueIPs(shortLinkID string) ([]string, error) {
+	var ips []string
+	err := c.db.Model(&models.Click{}).
+		Where("short_link_id = ?", shortLinkID).
+		Distinct().
+		Pluck("ip", &ips).Error
+	return ips, err
+}
+
+// Получить список уникальных стран
+func (c *ClickRepository) GetUniqueCountries(shortLinkID string) ([]string, error) {
+	var countries []string
+	err := c.db.Model(&models.Click{}).
+		Where("short_link_id = ?", shortLinkID).
+		Distinct().
+		Pluck("country", &countries).Error
+	return countries, err
+}

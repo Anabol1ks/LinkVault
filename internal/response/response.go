@@ -28,8 +28,39 @@ type SuccessShortLinkResponse struct {
 	ExpireAt    *time.Time `json:"expire_at,omitempty"`
 }
 
+// Подробная структура для статистики по ссылке
+// Используется для Swagger и JSON-ответа
+// total — общее количество кликов
+// unique_ip_count — количество уникальных IP
+// unique_ips — список уникальных IP
+// countries_count — количество стран
+// countries — список стран
+// countries_stats — карта страна: количество
+// daily_stats — карта дата: количество
+
+// swagger:model DetailedLinkStats
+// swagger:response LinkStatsResponse
+// @name DetailedLinkStats
+// @description Подробная статистика по короткой ссылке
+// @property total int64 "Общее количество кликов"
+// @property unique_ip_count int64 "Количество уникальных IP"
+// @property unique_ips []string "Список уникальных IP"
+// @property countries_count int "Количество стран"
+// @property countries []string "Список стран"
+// @property countries_stats map[string]int64 "Статистика по странам"
+// @property daily_stats map[string]int64 "Статистика по дням"
+type DetailedLinkStats struct {
+	Total          int64            `json:"total"`
+	UniqueIPCount  int64            `json:"unique_ip_count"`
+	UniqueIPs      []string         `json:"unique_ips"`
+	CountriesCount int              `json:"countries_count"`
+	Countries      []string         `json:"countries"`
+	CountriesStats map[string]int64 `json:"countries_stats"`
+	DailyStats     map[string]int64 `json:"daily_stats"`
+}
+
 type LinkStatsResponse struct {
-	Stats map[string]interface{} `json:"stats"`
+	Stats DetailedLinkStats `json:"stats"`
 }
 
 type ShortLinkListResponse struct {

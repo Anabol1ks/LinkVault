@@ -41,6 +41,7 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config
 		links.GET("", handlers.Link.GetLinksUser)
 		links.DELETE("/:id", handlers.Link.DeleteShortLink)
 		links.GET("/:id/stats", handlers.Click.GetLinkStats)
+		links.GET("/:id/clicks", handlers.Click.GetLinkClicks)
 	}
 	r.GET("/:shortCode", handlers.Link.GetOriginalURL)
 

@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"linkvault/internal/models"
 	"linkvault/internal/repository"
+	"linkvault/internal/response"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -46,36 +48,58 @@ func (s *ClickService) CreateClick(shortLinkID uuid.UUID, ip, userAgent string) 
 	return s.repo.Create(click)
 }
 
-func (s *ClickService) GetStats(shortLinkID string) (map[string]interface{}, error) {
-	stats := make(map[string]interface{})
+func (s *ClickService) GetStats(shortLinkID string) (response.DetailedLinkStats, error) {
+	var stats response.DetailedLinkStats
 
 	// Общее количество переходов
 	total, err := s.repo.GetCount(shortLinkID)
 	if err != nil {
-		return nil, err
+		return stats, err
 	}
-	stats["total"] = total
+	stats.Total = total
 
 	// Уникальные IP
-	uniqueIP, err := s.repo.GetUniqueIPCount(shortLinkID)
+	uniqueIPCount, err := s.repo.GetUniqueIPCount(shortLinkID)
 	if err != nil {
-		return nil, err
+		return stats, err
 	}
-	stats["unique_ip"] = uniqueIP
+	stats.UniqueIPCount = uniqueIPCount
+
+	uniqueIPs, err := s.repo.GetUniqueIPs(shortLinkID)
+	if err != nil {
+		return stats, err
+	}
+	stats.UniqueIPs = uniqueIPs
 
 	// География по странам
+	countries, err := s.repo.GetUniqueCountries(shortLinkID)
+	if err != nil {
+		return stats, err
+	}
+	stats.CountriesCount = len(countries)
+	stats.Countries = countries
+
 	countryStats, err := s.repo.GetCountryStats(shortLinkID)
 	if err != nil {
-		return nil, err
+		return stats, err
 	}
-	stats["countries"] = countryStats
+	stats.CountriesStats = countryStats
 
 	// График по дням
 	dailyStats, err := s.repo.GetDailyStats(shortLinkID)
 	if err != nil {
-		return nil, err
+		return stats, err
 	}
-	stats["daily"] = dailyStats
+	stats.DailyStats = dailyStats
 
 	return stats, nil
+}
+
+func (s *ClickService) GetClicks(shortLinkID string) ([]models.Click, error) {
+	clicks, err := s.repo.GetByShortLinkID(shortLinkID)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(clicks, func(i, j int) bool { return clicks[i].ClickedAt.After(clicks[j].ClickedAt) })
+	return clicks, nil
 }

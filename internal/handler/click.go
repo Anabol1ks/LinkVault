@@ -67,3 +67,52 @@ func (h *ClickHandler) GetLinkStats(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.LinkStatsResponse{Stats: stats})
 }
+
+// GetLinkClicks godoc
+// @Summary Получить все клики по короткой ссылке
+// @Description Возвращает список всех кликов по ссылке, отсортированных по дате (новые сверху)
+// @Tags links
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "ID короткой ссылки"
+// @Success 200 {array} models.Click "Список кликов"
+// @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
+// @Failure 404 {object} response.ErrorResponse "Ссылка не найдена"
+// @Failure 403 {object} response.ErrorResponse "Нет доступа"
+// @Router /links/{id}/clicks [get]
+func (h *ClickHandler) GetLinkClicks(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "id is required"})
+		return
+	}
+
+	userIDStr, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Missing or invalid token"})
+		return
+	}
+	userID, err := uuid.Parse(userIDStr.(string))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Invalid user id"})
+		return
+	}
+
+	shortLink, err := h.serviceLink.GetByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Short link not found"})
+		return
+	}
+	if shortLink.UserID == nil || *shortLink.UserID != userID {
+		c.JSON(http.StatusForbidden, response.ErrorResponse{Error: "Access denied"})
+		return
+	}
+
+	clicks, err := h.serviceClick.GetClicks(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "No clicks found"})
+		return
+	}
+	c.JSON(http.StatusOK, clicks)
+}

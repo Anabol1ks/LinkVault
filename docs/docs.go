@@ -318,6 +318,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/links/{id}/clicks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список всех кликов по ссылке, отсортированных по дате (новые сверху)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Получить все клики по короткой ссылке",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID короткой ссылки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список кликов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Click"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Ссылка не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/links/{id}/stats": {
             "get": {
                 "security": [
@@ -481,6 +539,137 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Click": {
+            "type": "object",
+            "properties": {
+                "clickedAt": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "shortLink": {
+                    "$ref": "#/definitions/models.ShortLink"
+                },
+                "shortLinkID": {
+                    "type": "string"
+                },
+                "userAgent": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ShortLink": {
+            "type": "object",
+            "properties": {
+                "clicks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Click"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "expireAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "originalURL": {
+                    "type": "string"
+                },
+                "shortCode": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "passwordHash": {
+                    "type": "string"
+                },
+                "shortLinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ShortLink"
+                    }
+                }
+            }
+        },
+        "response.DetailedLinkStats": {
+            "description": "Подробная статистика по короткой ссылке",
+            "type": "object",
+            "properties": {
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "countries_count": {
+                    "type": "integer"
+                },
+                "countries_stats": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "daily_stats": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "unique_ip_count": {
+                    "type": "integer"
+                },
+                "unique_ips": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -493,8 +682,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "stats": {
-                    "type": "object",
-                    "additionalProperties": true
+                    "$ref": "#/definitions/response.DetailedLinkStats"
                 }
             }
         },
