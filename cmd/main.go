@@ -3,6 +3,7 @@ package main
 import (
 	_ "linkvault/docs"
 	"linkvault/internal/config"
+	"linkvault/internal/croncleaner"
 	"linkvault/internal/handler"
 	"linkvault/internal/logger"
 	"linkvault/internal/repository"
@@ -54,7 +55,6 @@ func main() {
 	userHandler := handler.NewUserHandler(userService)
 	linkHandler := handler.NewShortLinkHandler(shortLinkService, clickService, cfg)
 	clickHandler := handler.NewClickHandler(clickService, shortLinkService)
-
 	// 4. Handlers для роутера
 	handlers := &router.Handlers{
 		User:  userHandler,
@@ -63,7 +63,14 @@ func main() {
 	}
 
 	r := router.Router(db, log, handlers, cfg)
-	if err := r.Run(); err != nil {
-		log.Fatal("Не удалось запустить сервер", zap.Error(err))
-	}
+
+	// Запуск Gin-сервера в отдельной горутине
+	go func() {
+		if err := r.Run(); err != nil {
+			log.Fatal("Не удалось запустить сервер", zap.Error(err))
+		}
+	}()
+	croncleaner.StartCleanerCron(db, log, cfg.Clean)
+
+	select {}
 }
