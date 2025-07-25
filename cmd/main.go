@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// @Title TZ_OZON API
+// @Title LinkVault API
 // @Version 1.0
 // @securityDefinitions.apikey BearerAuth
 // @in header

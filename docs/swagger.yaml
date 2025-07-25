@@ -128,7 +128,7 @@ definitions:
     type: object
 info:
   contact: {}
-  title: TZ_OZON API
+  title: LinkVault API
   version: "1.0"
 paths:
   /{shortCode}:
