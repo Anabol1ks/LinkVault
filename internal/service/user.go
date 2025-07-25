@@ -7,6 +7,7 @@ import (
 	"linkvault/internal/models"
 	"linkvault/internal/repository"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"go.uber.org/zap"
@@ -111,4 +112,13 @@ func (s *UserService) Refresh(refreshToken string) (access, refresh string, err 
 	}
 
 	return access, refresh, nil
+}
+
+func (s *UserService) Profile(userID uuid.UUID) (*models.User, error) {
+	user, err := s.repo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

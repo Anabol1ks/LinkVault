@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -150,4 +151,42 @@ func (h *UserHandler) Refresh(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+// Profile godoc
+// @Summary Получпение профиля
+// @Description Получение своего профиля по токену
+// @Security BearerAuth
+// @Tags users
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.UserResponse "Полученный профиль"
+// @Failure 404 {object} response.ErrorResponse "Пользователь не найден"
+// @Router /user/profile [get]
+func (h *UserHandler) Profile(c *gin.Context) {
+	var userID uuid.UUID
+	if val, exists := c.Get("user_id"); exists {
+		if parsed, err := uuid.Parse(val.(string)); err == nil {
+			userID = parsed
+		} else {
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Invalid user ID"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Missing user ID"})
+		return
+	}
+
+	user, err := h.service.Profile(userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Пользователь не найден"})
+		return
+	}
+
+	userResponse := response.UserResponse{
+		Name:  user.Name,
+		Email: user.Email,
+	}
+
+	c.JSON(http.StatusOK, userResponse)
 }

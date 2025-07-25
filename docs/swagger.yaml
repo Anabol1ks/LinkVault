@@ -126,6 +126,13 @@ definitions:
       name:
         type: string
     type: object
+  response.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+    type: object
 info:
   contact: {}
   title: LinkVault API
@@ -430,6 +437,27 @@ paths:
       summary: Создание короткой ссылки
       tags:
       - links
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Получение своего профиля по токену
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Полученный профиль
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получпение профиля
+      tags:
+      - users
 securityDefinitions:
   BearerAuth:
     in: header

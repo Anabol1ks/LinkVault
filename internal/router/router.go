@@ -52,6 +52,7 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config
 		links.GET("/:id/stats", handlers.Click.GetLinkStats)
 		links.GET("/:id/clicks", handlers.Click.GetLinkClicks)
 	}
+	r.GET("/user/profile", middleware.JWTAuth(&cfg.JWT), handlers.User.Profile)
 	r.GET("/:shortCode", handlers.Link.GetOriginalURL)
 
 	return r
