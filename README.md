@@ -61,7 +61,7 @@ go run ./cmd/main.go
 ## Запуск через Docker Compose
 
 ```bash
-docker-compose up --build
+docker-compose -f docker-compose.yml up -d
 ```
 
 - Приложение будет доступно на http://localhost:8080
@@ -70,16 +70,13 @@ docker-compose up --build
 
 ---
 
-
----
-
 ## Запуск через Makefile
 
 Для удобства доступны команды:
 
 ```bash
-make build   # Сборка бинарника
 make run     # Запуск приложения
+make doc   # Запуск docker
 ```
 
 ---
