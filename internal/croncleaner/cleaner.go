@@ -30,13 +30,6 @@ func CleanOldLinksAndClicks(db *gorm.DB, log *zap.Logger) {
 		log.Info("Удалена анонимная деактивированная ссылка", zap.String("short_code", link.ShortCode))
 	}
 
-	// 3. Для ссылок без владельца, статистику (клики) оставляем на неделю после истечения срока
-	weekAgo := time.Now().Add(-7 * 24 * time.Hour)
-	db.Joins("JOIN short_links ON short_links.id = clicks.short_link_id").
-		Where("short_links.user_id IS NULL AND short_links.expire_at IS NOT NULL AND short_links.expire_at < ? AND clicks.clicked_at < ?", time.Now(), weekAgo).
-		Delete(&models.Click{})
-	log.Info("Удалены старые клики по анонимным ссылкам")
-
 	// 4. Для ссылок с владельцем, удаляем только если истёк срок и деактивированы
 	var userLinks []models.ShortLink
 	db.Where("user_id IS NOT NULL AND is_active = false AND expire_at IS NOT NULL AND expire_at < ?", time.Now()).Find(&userLinks)
