@@ -5,6 +5,7 @@ import (
 	"linkvault/internal/handler"
 	"linkvault/internal/middleware"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -13,12 +14,21 @@ import (
 )
 
 type Handlers struct {
-	User *handler.UserHandler
-	Link *handler.ShortLinkHandler
+	User  *handler.UserHandler
+	Link  *handler.ShortLinkHandler
+	Click *handler.ClickHandler
 }
 
 func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config) *gin.Engine {
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.GET("/health", func(c *gin.Context) {
@@ -34,9 +44,15 @@ func Router(db *gorm.DB, log *zap.Logger, handlers *Handlers, cfg *config.Config
 		auth.POST("/refresh", handlers.User.Refresh)
 	}
 
-	links := r.Group("/links")
-	links.POST("", middleware.OptionalJWTAuth(&cfg.JWT), handlers.Link.CreateShortLink)
-
+	links := r.Group("/links", middleware.JWTAuth(&cfg.JWT))
+	{
+		r.POST("/links/create", middleware.OptionalJWTAuth(&cfg.JWT), handlers.Link.CreateShortLink)
+		links.GET("", handlers.Link.GetLinksUser)
+		links.DELETE("/:id", handlers.Link.DeleteShortLink)
+		links.GET("/:id/stats", handlers.Click.GetLinkStats)
+		links.GET("/:id/clicks", handlers.Click.GetLinkClicks)
+	}
+	r.GET("/user/profile", middleware.JWTAuth(&cfg.JWT), handlers.User.Profile)
 	r.GET("/:shortCode", handlers.Link.GetOriginalURL)
 
 	return r

@@ -32,8 +32,8 @@ type CreateShortLinkRequest struct {
 }
 
 // CreateShortLink godoc
-// @Summary Create a short link
-// @Description Create a short link
+// @Summary Создание короткой ссылки
+// @Description Создание короткой ссылки
 // @Tags links
 // @Accept json
 // @Produce json
@@ -41,7 +41,7 @@ type CreateShortLinkRequest struct {
 // @Success 200 {object} response.SuccessShortLinkResponse "Успешное создание короткой ссылки"
 // @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
 // @Failure 500 {object} response.ErrorResponse "Ошибка создания короткой ссылки"
-// @Router /links [post]
+// @Router /links/create [post]
 func (h *ShortLinkHandler) CreateShortLink(c *gin.Context) {
 	var req CreateShortLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,6 +75,7 @@ func (h *ShortLinkHandler) CreateShortLink(c *gin.Context) {
 	shortURL := fmt.Sprintf("%s/%s", h.cfg.Domain, shortLink.ShortCode)
 
 	c.JSON(http.StatusOK, response.SuccessShortLinkResponse{
+		ID:          shortLink.ID,
 		ShortURL:    shortURL,
 		OriginalURL: shortLink.OriginalURL,
 		ExpireAt:    shortLink.ExpireAt,
@@ -115,4 +116,82 @@ func (h *ShortLinkHandler) GetOriginalURL(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusFound, originalURL)
+}
+
+// GetLinksUser godoc
+// @Summary Получить короткие ссылки пользователя
+// @Description Получить короткие ссылки пользователя
+// @Security BearerAuth
+// @Tags links
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.ShortLinkListResponse "Успешное получение коротких ссылок"
+// @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
+// @Failure 500 {object} response.ErrorResponse "Ошибка получения коротких ссылок"
+// @Router /links [get]
+func (h *ShortLinkHandler) GetLinksUser(c *gin.Context) {
+	var userID uuid.UUID
+	if val, exists := c.Get("user_id"); exists {
+		if parsed, err := uuid.Parse(val.(string)); err == nil {
+			userID = parsed
+		}
+	}
+
+	shortLinks, err := h.service.GetLinksUser(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse{Error: "Ошибка получения коротких ссылок"})
+		return
+	}
+
+	var links []*response.SuccessShortLinkResponse
+	for _, link := range shortLinks {
+		links = append(links, &response.SuccessShortLinkResponse{
+			ID:          link.ID,
+			ShortURL:    fmt.Sprintf("%s/%s", h.cfg.Domain, link.ShortCode),
+			OriginalURL: link.OriginalURL,
+			ExpireAt:    link.ExpireAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, response.ShortLinkListResponse{Links: links})
+}
+
+// DeleteShortLink godoc
+// @Summary Деактивация (soft delete) короткой ссылки
+// @Description Деактивация (soft delete) короткой ссылки
+// @Security BearerAuth
+// @Tags links
+// @Accept json
+// @Produce json
+// @Param id path string true "ID короткой ссылки"
+// @Success 200 {object} response.ErrorResponse "Ссылка деактивирована"
+// @Failure 400 {object} response.ErrorResponse "Ошибка валидации"
+// @Failure 404 {object} response.ErrorResponse "Ссылка не найдена или не принадлежит пользователю"
+// @Failure 500 {object} response.ErrorResponse "Ошибка деактивации"
+// @Router /links/{id} [delete]
+func (h *ShortLinkHandler) DeleteShortLink(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse{Error: "Некорректный id"})
+		return
+	}
+	var userID uuid.UUID
+	if val, exists := c.Get("user_id"); exists {
+		if parsed, err := uuid.Parse(val.(string)); err == nil {
+			userID = parsed
+		} else {
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Unauthorized"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse{Error: "Unauthorized"})
+		return
+	}
+	err = h.service.DeactivateShortLink(id, userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, response.ErrorResponse{Error: "Ссылка не найдена или не принадлежит пользователю"})
+		return
+	}
+	c.JSON(http.StatusOK, response.ErrorResponse{Error: "Ссылка деактивирована"})
 }

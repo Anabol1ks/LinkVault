@@ -178,8 +178,13 @@ const docTemplate = `{
             }
         },
         "/links": {
-            "post": {
-                "description": "Create a short link",
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить короткие ссылки пользователя",
                 "consumes": [
                     "application/json"
                 ],
@@ -189,7 +194,42 @@ const docTemplate = `{
                 "tags": [
                     "links"
                 ],
-                "summary": "Create a short link",
+                "summary": "Получить короткие ссылки пользователя",
+                "responses": {
+                    "200": {
+                        "description": "Успешное получение коротких ссылок",
+                        "schema": {
+                            "$ref": "#/definitions/response.ShortLinkListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка получения коротких ссылок",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/links/create": {
+            "post": {
+                "description": "Создание короткой ссылки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Создание короткой ссылки",
                 "parameters": [
                     {
                         "description": "CreateShortLinkRequest",
@@ -216,6 +256,208 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Ошибка создания короткой ссылки",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/links/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Деактивация (soft delete) короткой ссылки",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Деактивация (soft delete) короткой ссылки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID короткой ссылки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ссылка деактивирована",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Ссылка не найдена или не принадлежит пользователю",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка деактивации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/links/{id}/clicks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список всех кликов по ссылке, отсортированных по дате (новые сверху)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Получить все клики по короткой ссылке",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID короткой ссылки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список кликов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.ClickResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Нет доступа",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Ссылка не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/links/{id}/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить статистику: количество переходов, уникальные IP, география, график по дням",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "links"
+                ],
+                "summary": "Статистика по короткой ссылке",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID короткой ссылки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика по ссылке",
+                        "schema": {
+                            "$ref": "#/definitions/response.LinkStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Ссылка не найдена",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получение своего профиля по токену",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Получпение профиля",
+                "responses": {
+                    "200": {
+                        "description": "Полученный профиль",
+                        "schema": {
+                            "$ref": "#/definitions/response.UserResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователь не найден",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -331,6 +573,68 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ClickResponse": {
+            "type": "object",
+            "properties": {
+                "clicked_at": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.DetailedLinkStats": {
+            "description": "Подробная статистика по короткой ссылке",
+            "type": "object",
+            "properties": {
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "countries_count": {
+                    "type": "integer"
+                },
+                "countries_stats": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "daily_stats": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "unique_ip_count": {
+                    "type": "integer"
+                },
+                "unique_ips": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -339,10 +643,32 @@ const docTemplate = `{
                 }
             }
         },
+        "response.LinkStatsResponse": {
+            "type": "object",
+            "properties": {
+                "stats": {
+                    "$ref": "#/definitions/response.DetailedLinkStats"
+                }
+            }
+        },
+        "response.ShortLinkListResponse": {
+            "type": "object",
+            "properties": {
+                "links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SuccessShortLinkResponse"
+                    }
+                }
+            }
+        },
         "response.SuccessShortLinkResponse": {
             "type": "object",
             "properties": {
                 "expire_at": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "original_url": {
@@ -377,6 +703,17 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "response.UserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -394,7 +731,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "TZ_OZON API",
+	Title:            "LinkVault API",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

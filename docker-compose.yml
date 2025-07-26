@@ -1,4 +1,15 @@
+
 services:
+  linkv-service:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - linkv-db
+    restart: unless-stopped
+
   linkv-db:
     image: postgres:17
     environment:
@@ -9,17 +20,6 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   container_name: pgadmin_linkvault
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ${PG_EMAIL}
-  #     PGADMIN_DEFAULT_PASSWORD: ${PG_PASSWORD}
-  #   ports:
-  #     - "5050:80"
-  #   depends_on:
-  #     - linkv-db
-
 
 volumes:
   db_data:

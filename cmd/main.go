@@ -3,6 +3,7 @@ package main
 import (
 	_ "linkvault/docs"
 	"linkvault/internal/config"
+	"linkvault/internal/croncleaner"
 	"linkvault/internal/handler"
 	"linkvault/internal/logger"
 	"linkvault/internal/repository"
@@ -15,11 +16,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// @Title TZ_OZON API
+// @Title LinkVault API
 // @Version 1.0
-// @securityDefinitions.apikey	BearerAuth
-// @in							header
-// @name						Authorization
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	_ = godotenv.Load()
 	isDev := os.Getenv("ENV") == "development"
@@ -53,15 +54,23 @@ func main() {
 	// 3. Хендлеры
 	userHandler := handler.NewUserHandler(userService)
 	linkHandler := handler.NewShortLinkHandler(shortLinkService, clickService, cfg)
-
+	clickHandler := handler.NewClickHandler(clickService, shortLinkService)
 	// 4. Handlers для роутера
 	handlers := &router.Handlers{
-		User: userHandler,
-		Link: linkHandler,
+		User:  userHandler,
+		Link:  linkHandler,
+		Click: clickHandler,
 	}
 
 	r := router.Router(db, log, handlers, cfg)
-	if err := r.Run(); err != nil {
-		log.Fatal("Не удалось запустить сервер", zap.Error(err))
-	}
+
+	// Запуск Gin-сервера в отдельной горутине
+	go func() {
+		if err := r.Run(); err != nil {
+			log.Fatal("Не удалось запустить сервер", zap.Error(err))
+		}
+	}()
+	croncleaner.StartCleanerCron(db, log, cfg.Clean)
+
+	select {}
 }
